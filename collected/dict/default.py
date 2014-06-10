@@ -1,6 +1,23 @@
 from collections import Callable, OrderedDict
 
 
+class OrderedDefaultDict(OrderedDict):
+
+    def __init__(self, factory, *args, **kwargs):
+        if not (factory is None or callable(factory)):
+            raise TypeError('first argument must be callable or None')
+
+        self._factory = factory
+        super(OrderedDefaultDict, self).__init__(*args, **kwargs)
+
+    def __missing__(self, key):
+        self[key] = default = self._factory()
+        return default
+
+    def __reduce__(self):
+        return type(self), self._factory, None, None, self.items()
+
+
 def default_dict(dict_type):
     assert issubclass(dict_type, dict)
 
@@ -41,20 +58,3 @@ def default_dict(dict_type):
             return '%s(%s, %s)' % (self.__class__.__name__, self.default_factory, dict_type.__repr__(self))
 
     return DefaultDict
-
-
-class OrderedDefaultDict(OrderedDict):
-
-    def __init__(self, factory, *args, **kwargs):
-        if not (factory is None or callable(factory)):
-            raise TypeError('first argument must be callable or None')
-
-        self._factory = factory
-        super(OrderedDefaultDict, self).__init__(*args, **kwargs)
-
-    def __missing__(self, key):
-        self[key] = default = self._factory()
-        return default
-
-    def __reduce__(self):
-        return type(self), self._factory, None, None, self.items()

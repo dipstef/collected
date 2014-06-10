@@ -13,6 +13,6 @@ setup(name=name,
       url='http://github.com/dipstef/{}/'.format(name),
       description=desc,
       packages=['collected', 'collected/dict'],
-
+      requires=['procol'],
       platforms=['Any']
 )

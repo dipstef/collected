@@ -1,15 +1,16 @@
-from datetime import timedelta, datetime
+from datetime import datetime
 from UserDict import DictMixin
 from collections import OrderedDict
 import multiprocessing
-from threading import Timer
+from procol.scheduler import repeat
 
 
 class KeyExpiration(object):
-    def __init__(self, expiration, refresh_seconds, call_on_expiration=None):
-        self._expire_delta = timedelta(seconds=expiration)
-        self._expiration_callback = call_on_expiration
-        self.refresh = refresh_seconds
+    def __init__(self, expiration, refresh, on_expiration=None):
+        self._expire_delta = expiration
+
+        self._expiration_callback = on_expiration
+        self.refresh = refresh
 
     def is_expired(self, last_refresh):
         refresh_diff = datetime.now() - last_refresh
@@ -22,7 +23,7 @@ class KeyExpiration(object):
     def _execute_expiration_callback(self, key, value):
         self._expiration_callback(key, value)
 
-default_expiration = KeyExpiration(1, refresh_seconds=5)
+default_expiration = KeyExpiration(1, refresh=5)
 
 
 class TimedDict(object, DictMixin):
@@ -34,7 +35,8 @@ class TimedDict(object, DictMixin):
 
         self._expiration = expiration
         self._key_updates = {}
-        _schedule_every(seconds=expiration.refresh, fun=self._refresh)
+
+        repeat(self._refresh, every=expiration.refresh)
 
     def __getitem__(self, key):
         with self._lock:
@@ -102,18 +104,3 @@ class TimedDefaultDict(TimedDict):
                 self[key] = value = self._factory(key)
 
             return value
-
-
-def _schedule_function(seconds, fun, daemon=False):
-    timer = Timer(seconds, fun)
-    timer.daemon = daemon
-    timer.start()
-
-
-def _schedule_every(seconds, fun, daemon=True):
-
-    def schedule_after():
-        fun()
-        _schedule_function(seconds, schedule_after, daemon=daemon)
-
-    _schedule_function(seconds, schedule_after, daemon=daemon)

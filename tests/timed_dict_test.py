@@ -1,3 +1,4 @@
+from dated.date_time import seconds
 from collected.dict.timed import TimedDefaultDict, KeyExpiration
 
 
@@ -16,7 +17,7 @@ def main():
         print 'Key Value expired: %s:%s' % (key, value)
         print 'Next Value: ', timed[key]
 
-    timed = TimedDefaultDict(increment_counter, KeyExpiration(1, refresh_seconds=1, call_on_expiration=call_back))
+    timed = TimedDefaultDict(increment_counter, KeyExpiration(seconds(1), refresh=seconds(1), on_expiration=call_back))
     assert timed[1] == 1
     time.sleep(5)
     assert_equal(5, timed[1])
