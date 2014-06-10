@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from UserDict import DictMixin
 from collections import OrderedDict
 import multiprocessing
@@ -23,7 +23,7 @@ class KeyExpiration(object):
     def _execute_expiration_callback(self, key, value):
         self._expiration_callback(key, value)
 
-default_expiration = KeyExpiration(1, refresh=5)
+default_expiration = KeyExpiration(timedelta(seconds=1), refresh=timedelta(seconds=1))
 
 
 class TimedDict(object, DictMixin):
