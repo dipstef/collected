@@ -1,4 +1,4 @@
-from dated.date_time import seconds
+from dated.timedelta import seconds
 from collected.dict.timed import TimedDefaultDict, KeyExpiration
 
 
