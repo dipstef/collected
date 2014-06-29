@@ -6,11 +6,10 @@ from procol.scheduler import repeat
 
 
 class KeyExpiration(object):
-    def __init__(self, expiration, refresh, on_expiration=None):
+    def __init__(self, expiration, on_expiration=None):
         self._expire_delta = expiration
 
         self._expiration_callback = on_expiration
-        self.refresh = refresh
 
     def is_expired(self, last_refresh):
         refresh_diff = datetime.now() - last_refresh
@@ -23,12 +22,14 @@ class KeyExpiration(object):
     def _execute_expiration_callback(self, key, value):
         self._expiration_callback(key, value)
 
-default_expiration = KeyExpiration(timedelta(seconds=1), refresh=timedelta(seconds=1))
+
+def expire(after, on_expiration):
+    return KeyExpiration(after, on_expiration)
 
 
 class TimedDict(object, DictMixin):
 
-    def __init__(self, expiration, max_size=None):
+    def __init__(self, expiration, check_every=timedelta(seconds=1), max_size=None):
         self._data = OrderedDict()
         self._lock = multiprocessing.RLock()
         self._max_size = max_size
@@ -36,7 +37,7 @@ class TimedDict(object, DictMixin):
         self._expiration = expiration
         self._key_updates = {}
 
-        repeat(self._refresh, every=expiration.refresh)
+        repeat(self._refresh, every=check_every)
 
     def __getitem__(self, key):
         with self._lock:
@@ -92,8 +93,8 @@ class TimedDict(object, DictMixin):
 
 class TimedDefaultDict(TimedDict):
 
-    def __init__(self, factory, expiration, max_size=None):
-        super(TimedDefaultDict, self).__init__(expiration, max_size)
+    def __init__(self, factory, expiration, check_every=timedelta(seconds=1), max_size=None):
+        super(TimedDefaultDict, self).__init__(expiration, check_every, max_size)
         self._factory = factory
 
     def __getitem__(self, key):

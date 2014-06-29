@@ -32,8 +32,8 @@ class CaseLessDict(dict):
     def _normalize_value(self, value):
         return value
 
-    def get(self, key, def_val=None):
-        return dict.get(self, self._normalize_key(key), self._normalize_value(def_val))
+    def get(self, key, default=None):
+        return dict.get(self, self._normalize_key(key), self._normalize_value(default))
 
     def setdefault(self, key, def_val=None):
         return dict.setdefault(self, self._normalize_key(key), self._normalize_value(def_val))
